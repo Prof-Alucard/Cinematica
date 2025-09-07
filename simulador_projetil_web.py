@@ -7,11 +7,10 @@ import time
 st.set_page_config(layout="wide", page_title="Simulador de Projétil")
 st.title("Simulador de Lançamento de Projétil 🎯")
 
-st.write('Este programa interativo, permite simular e visualizar o Lancamento Horizontal e Obliquo de um móvel. Você pode ajustar na barra lateral à esquerda e o tipo de simulação, definindo os valores de posição (H), velocidade inicial(v), angulo de Lancamento(teta) e a aceleração(a). Voce tem a opcao de ter a simulacao com resistencia do ar e as componentes dos vetores de Velocidade, clicar em (Animacao), na parte de baixo temos alguns valores que ainda esta em ajustes.')
-
-# --- Cabeçalho e Introdução ---
-#st.title("Simulador de Lançamento de Projétil 🎯")
-st.markdown("Ajuste os parâmetros para explorar a trajetória do projétil.")
+st.write(
+    'Este programa interativo permite simular e visualizar o Lançamento Horizontal e Oblíquo de um móvel. '
+    'Você pode ajustar o tipo de simulação, a altura (H), a velocidade inicial (v), o ângulo (theta) e a gravidade (g) na barra lateral.'
+)
 
 # --- Criação das Colunas para o Layout ---
 col1, col2 = st.columns([1, 2])
@@ -19,17 +18,32 @@ col1, col2 = st.columns([1, 2])
 # --- Coluna da Esquerda: Controles ---
 with col1:
     st.header("Controles")
+    
+    # Adicionar a opção de tipo de lançamento
+    modo_lancamento = st.radio(
+        "Selecione o tipo de lançamento:",
+        ("Oblíquo", "Horizontal")
+    )
 
     # Controles (Sliders)
     altura_inicial = st.slider("Altura Inicial (H, em m)", 0.0, 100.0, 0.0, 0.1)
     velocidade_inicial = st.slider("Velocidade Inicial (vᵢ, em m/s)", 0, 100, 50)
-    angulo = st.slider("Ângulo de Lançamento (θ, em °)", 0, 90, 45)
+    
+    # O slider de ângulo só aparece no modo Oblíquo
+    if modo_lancamento == "Oblíquo":
+        angulo = st.slider("Ângulo de Lançamento (θ, em °)", 0, 90, 45)
+    else:
+        angulo = 0 # Ângulo fixo em 0 para lançamento horizontal
+    
     gravidade = st.slider("Aceleração da Gravidade (g, em m/s²)", 0.0, 20.0, 9.81, 0.01)
 
     st.markdown("---")
 
     # Opções adicionais (checkboxes)
-    resistencia_ar = st.checkbox("Resistência do Ar", value=False, help="A resistência do ar é uma funcionalidade avançada e não está implementada nesta simulação simples.")
+    resistencia_ar = st.checkbox(
+        "Resistência do Ar", value=False,
+        help="A resistência do ar é uma funcionalidade avançada e não está implementada nesta simulação simples."
+    )
     mostrar_vetores = st.checkbox("Mostrar Vetores", value=False)
     
     st.markdown("---")
@@ -43,7 +57,7 @@ with col1:
 
 # --- Coluna da Direita: Trajetória e Resultados ---
 with col2:
-    st.header("Trajetória e Resultados")
+   # st.header("Trajetória e Resultados")
 
     # Converter ângulo para radianos para o cálculo
     angulo_rad = np.radians(angulo)
@@ -56,24 +70,41 @@ with col2:
         """
         if g <= 0:
             st.error("A gravidade deve ser maior que zero para calcular a trajetória.")
-            return np.array([0]), np.array([h0]), 0, 0, 0, 0, np.array([0])
+            return np.array([0]), np.array([h0]), 0, 0, 0, 0, np.array([0]), 0
 
-        t_altura_max_p_h0 = v0 * np.sin(ang) / g
-        altura_max = h0 + (v0 * np.sin(ang))**2 / (2 * g)
-        discriminante = (v0 * np.sin(ang))**2 + 2 * g * h0
-        if discriminante < 0:
-             st.error("Erro no cálculo do tempo de voo (discriminante negativo).")
-             return np.array([0]), np.array([h0]), 0, 0, 0, 0, np.array([0])
+        # Para lançamento horizontal, o tempo de voo é diferente
+        if angulo == 0 and h0 > 0:
+            t_voo = np.sqrt(2 * h0 / g)
+            t_to_altura_max = 0
+            altura_max = h0
+            alcance = v0 * t_voo
+            x = v0 * t
+            y = h0 - 0.5 * g * t**2
+        else:
+            t_altura_max_p_h0 = v0 * np.sin(ang) / g
+            altura_max = h0 + (v0 * np.sin(ang))**2 / (2 * g)
+            discriminante = (v0 * np.sin(ang))**2 + 2 * g * h0
+            if discriminante < 0:
+                st.error("Erro no cálculo do tempo de voo (discriminante negativo).")
+                return np.array([0]), np.array([h0]), 0, 0, 0, 0, np.array([0]), 0
 
-        t_voo = (v0 * np.sin(ang) + np.sqrt(discriminante)) / g
+            t_voo = (v0 * np.sin(ang) + np.sqrt(discriminante)) / g
+            t_to_altura_max = v0 * np.sin(ang) / g
+
+            t = np.linspace(0, t_voo, num=200)
+
+            x = v0 * np.cos(ang) * t
+            y = h0 + v0 * np.sin(ang) * t - 0.5 * g * t**2
+            
+            y[y < 0] = 0
+            
+            alcance = x[-1] if y[-1] == 0 else max(x)
+
         t = np.linspace(0, t_voo, num=200)
-
         x = v0 * np.cos(ang) * t
         y = h0 + v0 * np.sin(ang) * t - 0.5 * g * t**2
-        
         y[y < 0] = 0
-        
-        alcance = x[-1] if y[-1] == 0 else max(x)
+
         t_to_altura_max = v0 * np.sin(ang) / g
         
         vy_final = v0 * np.sin(ang) - g * t_voo
@@ -81,7 +112,7 @@ with col2:
         velocidade_final_mag = np.sqrt(vx_final**2 + vy_final**2)
 
         return x, y, alcance, altura_max, t_to_altura_max, velocidade_final_mag, t, t_voo
-    
+
     def draw_vectors(ax, pos_x, pos_y, vx, vy, escala_plot_x, escala_plot_y):
         # A nova escala do vetor é uma proporção do tamanho total do gráfico
         # Fator de 0.08 para reduzir o tamanho dos vetores, deixando a visualização mais limpa
@@ -146,25 +177,6 @@ with col2:
             chart_placeholder.pyplot(fig)
             plt.close(fig) # Fecha a figura para evitar sobrecarga de memória
             
-            # Atualiza as métricas dinamicamente
-            with metric_placeholder.container():
-                st.subheader("Resultados Calculados")
-                col_res1, col_res2, col_res3 = st.columns(3)
-                
-                vy_inst = velocidade_inicial * np.sin(angulo_rad) - gravidade * t[i]
-                vx_inst = velocidade_inicial * np.cos(angulo_rad)
-                vel_inst = np.sqrt(vx_inst**2 + vy_inst**2)
-
-                with col_res1:
-                    st.metric(label="Tempo Atual", value=f"{t[i]:.2f} s")
-                with col_res2:
-                    st.metric(label="Altura Atual", value=f"{y[i]:.2f} m")
-                with col_res3:
-                    st.metric(label="Velocidade Atual", value=f"{vel_inst:.2f} m/s")
-                
-                st.metric(label="Alcance Máximo", value=f"{alcance:.2f} m")
-                st.metric(label="Tempo de Voo", value=f"{t_voo:.2f} s")
-
             # Adiciona um pequeno atraso para a animação
             time.sleep(0.01)
 
@@ -194,19 +206,20 @@ with col2:
 
         chart_placeholder.pyplot(fig)
         
-        with metric_placeholder.container():
-            st.subheader("Resultados Calculados")
-            col_res1, col_res2, col_res3 = st.columns(3)
-            with col_res1:
-                st.metric(label="Tempo p/ Altura Máx.", value=f"{t_to_altura_max:.2f} s")
-            with col_res2:
-                st.metric(label="Altura Máxima", value=f"{altura_max:.2f} m")
-            with col_res3:
-                st.metric(label="Velocidade Final", value=f"{velocidade_final_mag:.2f} m/s")
-            
-            st.metric(label="Alcance Máximo", value=f"{alcance:.2f} m")
-            st.metric(label="Tempo de Voo", value=f"{t_voo:.2f} s")
+    with metric_placeholder.container():
+        st.subheader("Resultados Calculados")
+        col_res1, col_res2, col_res3 = st.columns(3)
+        with col_res1:
+            st.metric(label="Tempo p/ Altura Máx.", value=f"{t_to_altura_max:.2f} s")
+        with col_res2:
+            st.metric(label="Altura Máxima", value=f"{altura_max:.2f} m")
+        with col_res3:
+            st.metric(label="Velocidade Final", value=f"{velocidade_final_mag:.2f} m/s")
+        
+        st.metric(label="Alcance Máximo", value=f"{alcance:.2f} m")
+        st.metric(label="Tempo de Voo", value=f"{t_voo:.2f} s")
 
 
     st.markdown("---")
     st.markdown("Autor: Prof. Ojeda")
+
