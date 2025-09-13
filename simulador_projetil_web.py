@@ -51,7 +51,7 @@ with col1:
 
 # --- Coluna da Direita: Trajetória e Resultados ---
 with col2:
-    st.header("Trajetória e Resultados")
+   # st.header("Trajetória e Resultados")
 
     # Converter ângulo para radianos para o cálculo
     angulo_rad = np.radians(angulo)
