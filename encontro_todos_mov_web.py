@@ -131,18 +131,7 @@ if st.button('Iniciar Animação'):
             pos_1_metric.metric(label="Posição Móvel 1 (m)", value=f"{pos_atual_1:.2f}")
             pos_2_metric.metric(label="Posição Móvel 2 (m)", value=f"{pos_atual_2:.2f}")
             tempo_metric.metric(label="Tempo (s)", value=f"{t_atual:.2f}")
-
-
-# Cálculo do tempo de encontro (exemplo para MU)
-t_enc = (s0_2 - s0_1) / (v1 - v2)
-s_enc = s0_1 + v1 * t_enc
-
-# Marcar no gráfico
-plt.scatter(t_enc, s_enc, color='green', s=100, label='Ponto de Encontro')
-plt.annotate(f'Encontro: {s_enc:.2f}m', (t_enc, s_enc), textcoords="offset points", xytext=(0,10), ha='center')
-        
-
-        
+           
         # Controla a velocidade da animação
         time.sleep(velocidade_animacao)
 
