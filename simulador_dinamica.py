@@ -39,7 +39,7 @@ with metricas_placeholder.container():
     c5.metric("Velocidade", "0.0 m/s")
 
 if btn_iniciar and aceleracao > 0:
-    passos = 40 # Menos passos para a web não travar
+    passos = 30 # Menos passos para a web não travar
     for i in range(passos + 1):
         t_atual = (i / passos) * tempo_total
         dist_atual = (aceleracao * t_atual**2) / 2
@@ -66,7 +66,7 @@ if btn_iniciar and aceleracao > 0:
         
         espaço_do_grafico.pyplot(fig)
         plt.close(fig)
-        time.sleep(0.05) # Delay maior para a internet acompanhar
+        time.sleep(0.5) # Delay maior para a internet acompanhar
 
     st.success(f"🏁 Chegamos! Percurso de {distancia_final}m concluído.")
 elif btn_iniciar:
