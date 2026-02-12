@@ -35,7 +35,7 @@ espaço_do_grafico = st.empty()
 
 # Simulação
 if btn_iniciar and aceleracao > 0:
-    passos = 60  # Ajustado para fluidez na web
+    passos = 50  # Ajustado para fluidez na web
     for i in range(passos + 1):
         t_atual = (i / passos) * tempo_total
         dist_atual = (aceleracao * t_atual**2) / 2
