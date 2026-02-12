@@ -38,45 +38,34 @@ with metricas_placeholder.container():
     c4.metric("Posição", "0.0 m")
     c5.metric("Velocidade", "0.0 m/s")
 
-if btn_iniciar and aceleracao > 0:
-    passos = 30  # Reduzimos para a animação não "atropelar" na web
-    for i in range(passos + 1):
-        t_atual = (i / passos) * tempo_total
-        dist_atual = (aceleracao * t_atual**2) / 2
-        vel_atual = aceleracao * t_atual
-
-        # Atualiza as métricas
-        with metricas_placeholder.container():
-            mc1, mc2, mc3, mc4, mc5 = st.columns(5)
-            mc1.metric("Atrito", f"{fat_max:.1f} N")
-            mc2.metric("Aceleração", f"{aceleracao:.2f} m/s²")
-            mc3.metric("Tempo", f"{t_atual:.2f} s")
-            mc4.metric("Posição", f"{dist_atual:.1f} m")
-            mc5.metric("Velocidade", f"{vel_atual:.1f} m/s")
-
-        # Gera o gráfico - Frame por frame
+# Desenho do Gráfico
         fig, ax = plt.subplots(figsize=(12, 3))
         ax.axhline(0, color='black', linewidth=2)
-
-         # Bloco Azul (Sentado no solo)
-        ax.plot(dist_atual, 0.4, 'bs', markersize=40)
         
-
-
-            # Seta Força F (Azul)
-            ax.arrow(dist_atual, 0.4, 15, 0, head_width=0.1, head_length=4, fc='blue', ec='blue')
-            ax.text(dist_atual + 20, 0.4, 'F', color='blue', fontweight='bold')
-            
-            # Seta Atrito Fat (Vermelha - Na base inferior traseira)
-            ax.arrow(dist_atual - 3, 0.05, -12, 0, head_width=0.1, head_length=4, fc='red', ec='red')
-            ax.text(dist_atual - 20, 0.2, 'Fat', color='red', fontweight='bold')
-
+        # Bloco (Caixa Azul)
+        ax.plot(dist_atual, 0.4, 'bs', markersize=40, zorder=3)
         
-
+        # Seta Força F (Azul)
+        ax.arrow(dist_atual, 0.4, 15, 0, head_width=0.1, head_length=4, fc='blue', ec='blue')
+        ax.text(dist_atual + 20, 0.4, 'F', color='blue', fontweight='bold')
         
+        # Seta Atrito Fat (Vermelha)
+        ax.arrow(dist_atual - 3, 0.05, -12, 0, head_width=0.1, head_length=4, fc='red', ec='red')
+        ax.text(dist_atual - 20, 0.2, 'Fat', color='red', fontweight='bold')
+        
+        # Ajustes de Eixo para não cortar as setas
+        ax.set_xlim(-25, distancia_final + 40) 
+        ax.set_ylim(-0.8, 1.5)
+        
+        # Estética (Esconde bordas e números do eixo Y)
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        ax.set_yticks([])
+        
+        # Atualiza o gráfico na tela
         espaço_do_grafico.pyplot(fig)
         plt.close(fig)
-        time.sleep(0.1)  # Dá um "fôlego" para o servidor e para a internet
+        time.sleep(0.1)
 
     st.success(f"🏁 Chegamos! Percurso de {distancia_final}m concluído.")
 elif btn_iniciar:
