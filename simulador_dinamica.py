@@ -54,12 +54,25 @@ if btn_iniciar and aceleracao > 0:
             mc4.metric("Posição", f"{dist_atual:.1f} m")
             mc5.metric("Velocidade", f"{vel_atual:.1f} m/s")
 
-        # Gera o gráfico
+        # Gera o gráfico - Frame por frame
         fig, ax = plt.subplots(figsize=(12, 3))
         ax.axhline(0, color='black', linewidth=2)
+
+         # Bloco Azul (Sentado no solo)
         ax.plot(dist_atual, 0.4, 'bs', markersize=40)
         
-        # ... (restante das configurações do gráfico) ...
+
+
+            # Seta Força F (Azul)
+            ax.arrow(dist_atual, 0.4, 15, 0, head_width=0.1, head_length=4, fc='blue', ec='blue')
+            ax.text(dist_atual + 20, 0.4, 'F', color='blue', fontweight='bold')
+            
+            # Seta Atrito Fat (Vermelha - Na base inferior traseira)
+            ax.arrow(dist_atual - 3, 0.05, -12, 0, head_width=0.1, head_length=4, fc='red', ec='red')
+            ax.text(dist_atual - 20, 0.2, 'Fat', color='red', fontweight='bold')
+
+        
+
         
         espaço_do_grafico.pyplot(fig)
         plt.close(fig)
