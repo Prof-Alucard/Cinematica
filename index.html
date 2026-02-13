@@ -77,3 +77,135 @@ function reiniciar() {
 </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Laboratório de Física - Prof. Ojeda</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #eef2f3; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        .painel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; width: 800px; }
+        .controles { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        button { grid-column: span 2; padding: 12px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; }
+        canvas { border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .aba { display: flex; gap: 10px; margin-bottom: 10px; }
+        .aba-btn { padding: 8px 15px; cursor: pointer; border: 1px solid #ccc; background: #ddd; border-radius: 5px; }
+        .ativa { background: #007bff; color: white; border-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="painel">
+    <h2>🔬 Laboratório Prof. Ojeda</h2>
+    <div class="aba">
+        <div id="btn1" class="aba-btn ativa" onclick="mudarModo('cine')">🏃 Cinemática</div>
+        <div id="btn2" class="aba-btn" onclick="mudarModo('din')">📦 Dinâmica</div>
+    </div>
+
+    <div id="ctrl-cine" class="controles">
+        <div>Velocidade A (m/s): <input type="range" id="vA" min="1" max="60" value="20"> <span id="valVA">20</span></div>
+        <div>Velocidade B (m/s): <input type="range" id="vB" min="-60" max="-1" value="-15"> <span id="valVB">-15</span></div>
+        <div>Distância Inicial (m): <input type="range" id="dist" min="50" max="500" value="200"> <span id="valDist">200</span></div>
+    </div>
+
+    <div id="ctrl-din" class="controles" style="display:none">
+        <div>Massa (kg): <input type="range" id="massa" min="1" max="50" value="10"> <span id="valM">10</span></div>
+        <div>Força F (N): <input type="range" id="forca" min="0" max="400" value="150"> <span id="valF">150</span></div>
+        <div>Atrito (µ): <input type="range" id="mu" min="0" max="1" step="0.1" value="0.2"> <span id="valMu">0.2</span></div>
+    </div>
+    
+    <br>
+    <button onclick="iniciar()">▶️ Iniciar Experimento</button>
+</div>
+
+<script>
+let modo = 'cine';
+let x1, x2, v1, v2, a, rodando = false;
+
+function setup() {
+    let c = createCanvas(800, 250);
+    reiniciarValores();
+}
+
+function mudarModo(m) {
+    modo = m;
+    document.getElementById('ctrl-cine').style.display = m === 'cine' ? 'grid' : 'none';
+    document.getElementById('ctrl-din').style.display = m === 'din' ? 'grid' : 'none';
+    document.getElementById('btn1').className = m === 'cine' ? 'aba-btn ativa' : 'aba-btn';
+    document.getElementById('btn2').className = m === 'din' ? 'aba-btn ativa' : 'aba-btn';
+    rodando = false;
+    reiniciarValores();
+}
+
+function reiniciarValores() {
+    if(modo === 'cine') {
+        x1 = 20;
+        x2 = float(document.getElementById('dist').value) + 20;
+    } else {
+        x1 = 50;
+        v1 = 0;
+    }
+}
+
+function draw() {
+    background(255);
+    atualizarLabels();
+
+    stroke(0); line(0, 200, width, 200); // Chão
+
+    if (modo === 'cine') {
+        v1 = float(document.getElementById('vA').value);
+        v2 = float(document.getElementById('vB').value);
+        if (rodando) {
+            x1 += v1 * 0.1;
+            x2 += v2 * 0.1;
+            if (x1 >= x2) rodando = false;
+        }
+        desenharMovel(x1, 170, 'green', 'Carro A');
+        desenharMovel(x2, 170, 'red', 'Carro B');
+    } else {
+        let m = float(document.getElementById('massa').value);
+        let f = float(document.getElementById('forca').value);
+        let mu = float(document.getElementById('mu').value);
+        let fat = mu * m * 9.8;
+        a = f > fat ? (f - fat) / m : 0;
+        
+        if (rodando && a > 0) {
+            v1 += a * 0.05;
+            x1 += v1;
+        }
+        desenharBloco(x1 % width, 160);
+    }
+}
+
+function desenharMovel(x, y, col, txt) {
+    fill(col); noStroke();
+    ellipse(x, y, 30, 30);
+    fill(0); textAlign(CENTER); text(txt, x, y - 25);
+}
+
+function desenharBloco(x, y) {
+    fill(0, 123, 255); rect(x, y, 40, 40);
+    fill(0); text("Bloco", x + 20, y - 10);
+}
+
+function atualizarLabels() {
+    if(modo === 'cine') {
+        document.getElementById('valVA').innerText = document.getElementById('vA').value;
+        document.getElementById('valVB').innerText = document.getElementById('vB').value;
+        document.getElementById('valDist').innerText = document.getElementById('dist').value;
+    } else {
+        document.getElementById('valM').innerText = document.getElementById('massa').value;
+        document.getElementById('valF').innerText = document.getElementById('forca').value;
+        document.getElementById('valMu').innerText = document.getElementById('mu').value;
+    }
+}
+
+function iniciar() {
+    reiniciarValores();
+    rodando = true;
+}
+</script>
+</body>
+</html>
